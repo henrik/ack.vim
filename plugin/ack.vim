@@ -26,9 +26,9 @@ function! s:Ack(cmd, args)
 
     " Format, used to manage column jump
     if a:cmd =~# '-g$'
-        let g:ackformat="%f"
+      let g:ackformat="%f"
     else
-        let g:ackformat="%f:%l:%c:%m"
+      let g:ackformat="%f:%l:%c:%m"
     end
 
     let grepprg_bak=&grepprg
@@ -36,7 +36,15 @@ function! s:Ack(cmd, args)
     try
         let &grepprg=g:ackprg
         let &grepformat=g:ackformat
-        silent execute a:cmd . " " . escape(l:grepargs, '|')
+
+        " Escape pipes in e.g. :Ack 'foo|bar'
+        let l:grepargs = escape(l:grepargs, '|')
+        " Escape again if piped argument is unquoted, e.g. :Ack foo|bar
+        if l:grepargs =~ '\(^\|\s\)[^"'']\S*|'
+          let l:grepargs = escape(l:grepargs, '|')
+        endif
+
+        silent execute a:cmd . " " . l:grepargs
     finally
         let &grepprg=grepprg_bak
         let &grepformat=grepformat_bak
